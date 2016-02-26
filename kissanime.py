@@ -4,6 +4,7 @@ import time
 import os
 import sys
 import csv
+import settings
 try:
     from bs4 import BeautifulSoup
 except ImportError:
@@ -22,16 +23,18 @@ except ImportError:
 
 class KissAnime:
 
-	def __init__(self):
+	def __init__(self,anime_url):
 		self.driver = webdriver.Firefox()
 		self.driver.set_page_load_timeout(100)
 		self.anime_page = ""
-		self.episode_list = []
+		self.ANIME_URL = anime_url
+		self.ANIME_TITLE = self.get_title()
+		self.video_list = []
 
-	def login(self, username, password):
+	def login(self):
 
 		# go to the site login page
-		self.driver.get("https://kissanime.to/Login")
+		self.driver.get(settings.LOGIN_PAGE)
 
 		#wait for cloudflare to figure itself out
 		time.sleep(10)
@@ -40,26 +43,28 @@ class KissAnime:
 		password_field = self.driver.find_element_by_id("password")
 
 		#type login info into fields
-		username_field.send_keys(username)
-		password_field.send_keys(password)
+		username_field.send_keys(settings.USERNAME)
+		password_field.send_keys(settings.PASSWORD)
 
 		# send the filled out login form adnd wait
 		password_field.send_keys(Keys.RETURN)
 		time.sleep(5)
-
-		if self.driver.current_url == "https://kissanime.to/":
+		#print(self.driver.current_url)
+		#print(settings.HOME_PAGE)
+		if self.driver.current_url == settings.HOME_PAGE+"/":
 			return True
 		else:
 			return False
 
-	def get_episodes_url(self,anime_url):
-		self.driver.get(anime_url)
+	def get_video_urls(self): # return all the url of videos page
+		
+		self.driver.get(self.ANIME_URL)
 		self.anime_page = self.driver.page_source
 		soup = BeautifulSoup(self.anime_page, 'html.parser')
 
 		hyperlink_list = soup.findAll('a')
 
-		_url_list = []
+		_url_dict = dict()
 		for hyperlink in hyperlink_list:
 			href = hyperlink.get('href')
 			if href is None:
@@ -67,11 +72,50 @@ class KissAnime:
 			_href_split = href.split('?')
 
 			if len(_href_split) == 2 and _href_split[1][0:2]== 'id':
-				_url_list.append(href)
-				print(href)
-		return _url_list
+				video_name = _href_split[0].split('/')[-1]
+				video_url = settings.HOME_PAGE + href
+				
+				if not video_name in _url_dict.keys():
+					_url_dict[video_name] = video_url
 
-	def get_downlink_link(self, episode_url):
-		print(episode_url)
+				#print(href)
+		return _url_dict
+
+	def get_download_link(self, video_url):
+
+		load=False
+
+		while not load:
+			try:
+				self.driver.get(video_url)
+				load=True
+			except TimeoutException:
+				print("LOADING "+ video_url +" TIMED OUT.. TRYING AGAIN")
+
+		time.sleep(10)
+		video_page = self.driver.page_source
+		soup_page = BeautifulSoup(video_page, 'html.parser')
+		video_link=[]
+
+		for quality in settings.VIDEO_QUALITY:
+
+			video_link = soup_page.find_all("a",string=quality)
+			if not len(video_link) == 0:
+				break
+		if len(video_link) == 0:
+
+			return None
+
+		download_link = video_link[0].get('href')
+
+		return download_link
+
+
+	def close(self):
+		self.driver.close()
+
+	def get_title(self):
+		return self.ANIME_URL.split('/')[-1]
+
 
 
