@@ -15,24 +15,18 @@ try:
     from selenium.webdriver.common.keys import Keys
 except ImportError:
     pip.main(['install', 'selenium'])
-try:
-    import pySmartDL
-except ImportError:
-    pip.main(['install', 'pySmartDL'])
 
 
 class KissAnime:
 
 	def __init__(self,anime_url):
-		self.driver = webdriver.Firefox()
-		self.driver.set_page_load_timeout(100)
 		self.anime_page = ""
 		self.ANIME_URL = anime_url
 		self.ANIME_TITLE = self.get_title()
-		self.video_list = []
 
 	def login(self):
-
+		self.driver = webdriver.Firefox()
+		self.driver.set_page_load_timeout(100)
 		# go to the site login page
 		self.driver.get(settings.LOGIN_PAGE)
 
@@ -70,15 +64,13 @@ class KissAnime:
 			if href is None:
 				continue
 			_href_split = href.split('?')
-
 			if len(_href_split) == 2 and _href_split[1][0:2]== 'id':
 				video_name = _href_split[0].split('/')[-1]
 				video_url = settings.HOME_PAGE + href
-				
+				print(video_name)
 				if not video_name in _url_dict.keys():
 					_url_dict[video_name] = video_url
 
-				#print(href)
 		return _url_dict
 
 	def get_download_link(self, video_url):
