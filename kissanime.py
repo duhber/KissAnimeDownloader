@@ -6,15 +6,15 @@ import sys
 import csv
 import settings
 try:
-    from bs4 import BeautifulSoup
+            from bs4 import BeautifulSoup
 except ImportError:
-    pip.main(['install', 'BeautifulSoup4'])
+            pip.main(['install', 'BeautifulSoup4'])
 try:
-    from selenium import webdriver
-    from selenium.common.exceptions import TimeoutException
-    from selenium.webdriver.common.keys import Keys
+            from selenium import webdriver
+            from selenium.common.exceptions import TimeoutException
+            from selenium.webdriver.common.keys import Keys
 except ImportError:
-    pip.main(['install', 'selenium'])
+            pip.main(['install', 'selenium'])
 
 
 class KissAnime:
@@ -29,10 +29,8 @@ class KissAnime:
 		self.driver.set_page_load_timeout(100)
 		# go to the site login page
 		self.driver.get(settings.LOGIN_PAGE)
-
 		#wait for cloudflare to figure itself out
 		time.sleep(10)
-
 		username_field = self.driver.find_element_by_id("username")
 		password_field = self.driver.find_element_by_id("password")
 
@@ -43,15 +41,15 @@ class KissAnime:
 		# send the filled out login form adnd wait
 		password_field.send_keys(Keys.RETURN)
 		time.sleep(5)
-		#print(self.driver.current_url)
-		#print(settings.HOME_PAGE)
+		print(self.driver.current_url)
+		print(settings.HOME_PAGE)
 		if self.driver.current_url == settings.HOME_PAGE+"/":
 			return True
 		else:
 			return False
 
 	def get_video_urls(self): # return all the url of videos page
-		
+
 		self.driver.get(self.ANIME_URL)
 		self.anime_page = self.driver.page_source
 		soup = BeautifulSoup(self.anime_page, 'html.parser')
@@ -108,6 +106,3 @@ class KissAnime:
 
 	def get_title(self):
 		return self.ANIME_URL.split('/')[-1]
-
-
-

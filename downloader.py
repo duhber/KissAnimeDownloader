@@ -3,7 +3,11 @@ from kissanime import KissAnime
 import settings
 import sys
 import os
-import pySmartDL
+try:
+    import pySmartDL
+except:
+    pip.main(['install','pySmartDL'])
+
 import time
 
 def download(download_list,download_links, destination, anime_title):
@@ -24,7 +28,7 @@ def download(download_list,download_links, destination, anime_title):
 		if filename in _finished:# check if already download
 			print(filename + ' '*5+'[DONE]' )
 			continue
-		
+
 		_link = download_links[video]
 
 		if _link == settings.LINK_NOT_FOUND:
@@ -39,7 +43,7 @@ def download(download_list,download_links, destination, anime_title):
 			return
 
 
-def download_video(link, filename, destination):   
+def download_video(link, filename, destination):
         path = destination + filename
         obj = pySmartDL.SmartDL(link, destination, progress_bar=False, fix_urls=True)
         obj.start(blocking=False)
@@ -65,7 +69,7 @@ def download_video(link, filename, destination):
         return path
 
 if __name__=='__main__':
-	
+
 	arg_length = len(sys.argv)
 
 	if arg_length < 2:
@@ -73,7 +77,7 @@ if __name__=='__main__':
 		print('USAGE: ANIME URL IS MANDATORY: https://kissanime.to/Anime/Tamako-Love-Story')
 		print('USAGE: ANIME_URL <OPTIONAL> EPISODE_FROM EPISODE_TO')
 		exit()
-		
+
 	ANIME_URL = sys.argv[1]
 	EPISODE_FROM=0
 	EPISODE_TO=0
@@ -105,7 +109,7 @@ if __name__=='__main__':
 		if not is_login:
 			print('USERNAME or PASSWORD is INVALID')
 			kissanime.close()
-			exit()			
+			exit()
 
 		video_urls=kissanime.get_video_urls()
 		with open(_url_file,'w') as f:
@@ -134,7 +138,7 @@ if __name__=='__main__':
 	_link_file = destination + settings.DOWNLOAD_LINKS
 	print(download_list)
 	download_links = dict()
-	
+
 	# link which are already saved
 	if os.path.isfile(_link_file):
 		file = open(_link_file,'r')
@@ -160,11 +164,11 @@ if __name__=='__main__':
 					print('USERNAME or PASSWORD is INVALID')
 					kissanime.close()
 					exit()
-			
+
 			_link = kissanime.get_download_link(_url)
 
 			if _link is None:
-				
+
 				download_links[_name] = settings.LINK_NOT_FOUND
 				continue
 				#_link = settings.LINK_NOT_FOUND
@@ -172,7 +176,7 @@ if __name__=='__main__':
 			file = open(_link_file,'a')
 			file.write(_name+' '+_link+'\n')
 			file.close()
-		
+
 		print(_name+' '+ download_links[_name])
 	if is_login:
 		kissanime.close()
@@ -182,4 +186,3 @@ if __name__=='__main__':
 
 	#for url in episodes_url:
 	#	print(url)
-
